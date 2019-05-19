@@ -59,7 +59,7 @@ function managerActions() {
 
 function listProducts() {
     // Function to display the table of available items to purchase
-    listInv();
+    listInv(managerActions);
 
 }
 
