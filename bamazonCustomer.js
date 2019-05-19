@@ -99,6 +99,8 @@ function purchaseQuantity() {
                 item_id: bookID
               }
             ])
+            
+            // Once the update goes through, show the customer the total cost of their purchase
           console.log("Your total purchase is $" + purchase * price);
 
           connection.end();
@@ -108,5 +110,3 @@ function purchaseQuantity() {
 
     })
 }
-
-// Once the update goes through, show the customer the total cost of their purchase

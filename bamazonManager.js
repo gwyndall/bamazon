@@ -44,7 +44,7 @@ function managerActions() {
                 lowInv();
                 break;
             case " Add to Inventory":
-                addInv();
+                listInv(addInv);
                 break;
             case " Add New Product":
                 addProd();
@@ -59,12 +59,10 @@ function managerActions() {
 
 function listProducts() {
     // Function to display the table of available items to purchase
-    connection.query("SELECT * FROM products", function (err, results) {
-        if (err) throw err;
-        console.table(results);
-        managerActions();
-    })
+    listInv();
+
 }
+
 
 function lowInv() {
     connection.query("SELECT * FROM products WHERE stock_quantity <=6", function (err, res) {
@@ -73,59 +71,64 @@ function lowInv() {
     })
 }
 
-function addInv() {
+function listInv(callback) {
     connection.query("SELECT * FROM products", function (err, results) {
         if (err) throw err;
         console.table(results);
+        callback();
     });
-    inquirer
-        .prompt([{
-                name: "purchaseID",
-                type: "input",
-                message: "What is the ID of the book you would like to increase?",
-                validate: function (value) {
-                    if (isNaN(value) === false) {
-                        return true;
-                    }
-                    return false;
-                }
-            },
-            {
-                name: "addQty",
-                type: "input",
-                message: "How many books do you wish to add?",
-                validate: function (value) {
-                    if (isNaN(value) === false) {
-                        return true;
-                    }
-                    return false;
-                }
-            }
-        ])
-        .then(
-            function (answer) {
-                bookID = answer.purchaseID;
-                connection.query("SELECT stock_quantity, price FROM products WHERE ?", {
-                    item_id: bookID
-                }, function (err, res) {
-                    let inStock = parseInt(res[0].stock_quantity);
-                    let addStock = parseInt(answer.addQty);
-                    let newStockAmt = inStock + addStock;
-                    connection.query(
-                        "UPDATE products SET ? WHERE ?",
-                        [{
-                                stock_quantity: newStockAmt
-                            },
-                            {
-                                item_id: bookID
-                            }
-                        ])
+}
 
-                    // Once the update goes through, show the customer the total cost of their purchase
-                    console.log("Book ID " + bookID + " quantity updated to " + newStockAmt);
-                    managerActions();
+async function addInv() {
+        inquirer
+            .prompt([{
+                    name: "purchaseID",
+                    type: "input",
+                    message: "What is the ID of the book you would like to increase?",
+                    validate: function (value) {
+                        if (isNaN(value) === false) {
+                            return true;
+                        }
+                        return false;
+                    }
+                },
+                {
+                    name: "addQty",
+                    type: "input",
+                    message: "How many books do you wish to add?",
+                    validate: function (value) {
+                        if (isNaN(value) === false) {
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+            ])
+            .then(
+                function (answer) {
+                    bookID = answer.purchaseID;
+                    connection.query("SELECT stock_quantity, price FROM products WHERE ?", {
+                        item_id: bookID
+                    }, function (err, res) {
+                        let inStock = parseInt(res[0].stock_quantity);
+                        let addStock = parseInt(answer.addQty);
+                        let newStockAmt = inStock + addStock;
+                        connection.query(
+                            "UPDATE products SET ? WHERE ?",
+                            [{
+                                    stock_quantity: newStockAmt
+                                },
+                                {
+                                    item_id: bookID
+                                }
+                            ])
+
+                        // Once the update goes through, show the customer the total cost of their purchase
+                        console.log("Book ID " + bookID + " quantity updated to " + newStockAmt);
+                        managerActions();
+                    })
                 })
-            })
+    
 };
 
 function addProd() {
@@ -155,41 +158,41 @@ function addProd() {
             type: "input",
             name: "price",
             message: "Price: ",
-            validate: function(value) {
+            validate: function (value) {
                 if (isNaN(value) === false) {
-                  return true;
+                    return true;
                 }
                 return false;
-              }
+            }
         },
 
         {
             type: "input",
             name: "qty",
             message: "Quantity: ",
-            validate: function(value) {
+            validate: function (value) {
                 if (isNaN(value) === false) {
-                  return true;
+                    return true;
                 }
                 return false;
-              }
+            }
         }
 
     ]).then(
         function (answer) {
             connection.query(
-                "INSERT INTO products SET ?",
-                {
-                  product_name: answer.newBook,
-                  author: answer.author,
-                  department_name: answer.dept,
-                  price: answer.price || 0,
-                  stock_quantity: answer.qty || 0
+                "INSERT INTO products SET ?", {
+                    product_name: answer.newBook,
+                    author: answer.author,
+                    department_name: answer.dept,
+                    price: answer.price || 0,
+                    stock_quantity: answer.qty || 0
                 },
-                function(err) {
-                  if (err) throw err;
-                  console.log("Your item was added successfully!");
-                  managerActions();
-        }
-    )
-})}
+                function (err) {
+                    if (err) throw err;
+                    console.log("Your item was added successfully!");
+                    managerActions();
+                }
+            )
+        })
+}
